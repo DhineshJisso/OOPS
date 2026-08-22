@@ -1,0 +1,319 @@
+CREATE DATABASE employee_db;
+
+USE employee_db;
+
+CREATE TABLE employee (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    email VARCHAR(100),
+    salary DOUBLE
+);
+import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+
+import java.sql.*;
+
+public class EmployeeCRUD extends Application {
+
+    TextField idField = new TextField();
+    TextField nameField = new TextField();
+    TextField emailField = new TextField();
+    TextField salaryField = new TextField();
+
+    TableView<Employee> table = new TableView<>();
+    ObservableList<Employee> employeeList =
+            FXCollections.observableArrayList();
+
+    // JDBC Connection
+    Connection getConnection() throws SQLException {
+
+        String url = "jdbc:mysql://localhost:3306/employee_db";
+        String username = "root";
+        String password = "root";
+
+        return DriverManager.getConnection(url, username, password);
+    }
+
+    @Override
+    public void start(Stage stage) {
+
+        // Table Columns
+        TableColumn<Employee, Integer> idCol =
+                new TableColumn<>("ID");
+        idCol.setCellValueFactory(
+                new PropertyValueFactory<>("id"));
+
+        TableColumn<Employee, String> nameCol =
+                new TableColumn<>("Name");
+        nameCol.setCellValueFactory(
+                new PropertyValueFactory<>("name"));
+
+        TableColumn<Employee, String> emailCol =
+                new TableColumn<>("Email");
+        emailCol.setCellValueFactory(
+                new PropertyValueFactory<>("email"));
+
+        TableColumn<Employee, Double> salaryCol =
+                new TableColumn<>("Salary");
+        salaryCol.setCellValueFactory(
+                new PropertyValueFactory<>("salary"));
+
+        table.getColumns().addAll(
+                idCol, nameCol, emailCol, salaryCol
+        );
+
+        // Buttons
+        Button addBtn = new Button("Add");
+        Button updateBtn = new Button("Update");
+        Button deleteBtn = new Button("Delete");
+        Button clearBtn = new Button("Clear");
+
+        // Add Employee
+        addBtn.setOnAction(e -> addEmployee());
+
+        // Update Employee
+        updateBtn.setOnAction(e -> updateEmployee());
+
+        // Delete Employee
+        deleteBtn.setOnAction(e -> deleteEmployee());
+
+        // Clear Fields
+        clearBtn.setOnAction(e -> clearFields());
+
+        // Select data from Table
+        table.setOnMouseClicked(e -> {
+
+            Employee emp = table.getSelectionModel()
+                                .getSelectedItem();
+
+            if (emp != null) {
+                idField.setText(String.valueOf(emp.getId()));
+                nameField.setText(emp.getName());
+                emailField.setText(emp.getEmail());
+                salaryField.setText(
+                        String.valueOf(emp.getSalary())
+                );
+            }
+        });
+
+        // Form Layout
+        GridPane form = new GridPane();
+
+        form.setPadding(new Insets(10));
+        form.setHgap(10);
+        form.setVgap(10);
+
+        form.add(new Label("ID:"), 0, 0);
+        form.add(idField, 1, 0);
+
+        form.add(new Label("Name:"), 0, 1);
+        form.add(nameField, 1, 1);
+
+        form.add(new Label("Email:"), 0, 2);
+        form.add(emailField, 1, 2);
+
+        form.add(new Label("Salary:"), 0, 3);
+        form.add(salaryField, 1, 3);
+
+        HBox buttons = new HBox(
+                10, addBtn, updateBtn, deleteBtn, clearBtn
+        );
+
+        VBox root = new VBox(15);
+
+        root.setPadding(new Insets(15));
+
+        root.getChildren().addAll(
+                form, buttons, table
+        );
+
+        Scene scene = new Scene(root, 600, 500);
+
+        stage.setTitle("Employee CRUD Application");
+        stage.setScene(scene);
+        stage.show();
+
+        loadEmployees();
+    }
+
+    // CREATE
+    void addEmployee() {
+
+        String sql =
+                "INSERT INTO employee(name, email, salary) VALUES (?, ?, ?)";
+
+        try (
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+
+            ps.setString(1, nameField.getText());
+            ps.setString(2, emailField.getText());
+            ps.setDouble(
+                    3,
+                    Double.parseDouble(salaryField.getText())
+            );
+
+            ps.executeUpdate();
+
+            System.out.println("Employee Added Successfully!");
+
+            loadEmployees();
+            clearFields();
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // READ
+    void loadEmployees() {
+
+        employeeList.clear();
+
+        String sql = "SELECT * FROM employee";
+
+        try (
+            Connection con = getConnection();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery(sql)
+        ) {
+
+            while (rs.next()) {
+
+                employeeList.add(
+                        new Employee(
+                                rs.getInt("id"),
+                                rs.getString("name"),
+                                rs.getString("email"),
+                                rs.getDouble("salary")
+                        )
+                );
+            }
+
+            table.setItems(employeeList);
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // UPDATE
+    void updateEmployee() {
+
+        String sql =
+                "UPDATE employee SET name=?, email=?, salary=? WHERE id=?";
+
+        try (
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+
+            ps.setString(1, nameField.getText());
+            ps.setString(2, emailField.getText());
+            ps.setDouble(
+                    3,
+                    Double.parseDouble(salaryField.getText())
+            );
+            ps.setInt(
+                    4,
+                    Integer.parseInt(idField.getText())
+            );
+
+            ps.executeUpdate();
+
+            System.out.println("Employee Updated Successfully!");
+
+            loadEmployees();
+            clearFields();
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // DELETE
+    void deleteEmployee() {
+
+        String sql = "DELETE FROM employee WHERE id=?";
+
+        try (
+            Connection con = getConnection();
+            PreparedStatement ps = con.prepareStatement(sql)
+        ) {
+
+            ps.setInt(
+                    1,
+                    Integer.parseInt(idField.getText())
+            );
+
+            ps.executeUpdate();
+
+            System.out.println("Employee Deleted Successfully!");
+
+            loadEmployees();
+            clearFields();
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // Clear Form
+    void clearFields() {
+
+        idField.clear();
+        nameField.clear();
+        emailField.clear();
+        salaryField.clear();
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
+
+
+// Employee Model Class
+class Employee {
+
+    private int id;
+    private String name;
+    private String email;
+    private double salary;
+
+    public Employee(
+            int id,
+            String name,
+            String email,
+            double salary
+    ) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.salary = salary;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+}
