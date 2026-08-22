@@ -1,0 +1,43 @@
+import java.util.ArrayList;
+
+public class Main {
+    public static void main(String[] args) {
+
+        // Creating ArrayList of Strings
+        ArrayList<String> names = new ArrayList<>();
+
+        // Adding elements
+        names.add("Manoj");
+        names.add("Arun");
+        names.add("Kumar");
+
+        System.out.println("Original ArrayList: " + names);
+
+        // Adding an element
+        names.add("Ravi");
+        System.out.println("After Adding: " + names);
+
+        // Accessing an element
+        System.out.println("First Name: " + names.get(0));
+
+        // Updating an element
+        names.set(1, "Vimal");
+        System.out.println("After Updating: " + names);
+
+        // Removing an element
+        names.remove("Kumar");
+        System.out.println("After Removing: " + names);
+
+        // Searching an element
+        if (names.contains("Manoj")) {
+            System.out.println("Manoj is present");
+        }
+
+        // Displaying all elements
+        System.out.println("\nNames in ArrayList:");
+
+        for (String name : names) {
+            System.out.println(name);
+        }
+    }
+}
