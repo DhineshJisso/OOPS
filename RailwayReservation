@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 50
+
+struct Passenger {
+    int ticketNo;
+    char name[30];
+    int age;
+    char status[15];
+};
+
+struct Passenger p[MAX];
+int count = 0;
+int ticketNo = 1001;
+
+void bookTicket()
+{
+    if (count >= MAX) {
+        printf("\nNo tickets available!\n");
+        return;
+    }
+
+    p[count].ticketNo = ticketNo++;
+
+    printf("\nEnter passenger name: ");
+    scanf(" %[^\n]", p[count].name);
+
+    printf("Enter age: ");
+    scanf("%d", &p[count].age);
+
+    strcpy(p[count].status, "Confirmed");
+
+    printf("\nTicket booked successfully!");
+    printf("\nTicket Number: %d\n", p[count].ticketNo);
+
+    count++;
+}
+
+void cancelTicket()
+{
+    int no, i, found = 0;
+
+    printf("\nEnter ticket number to cancel: ");
+    scanf("%d", &no);
+
+    for (i = 0; i < count; i++) {
+        if (p[i].ticketNo == no &&
+            strcmp(p[i].status, "Confirmed") == 0) {
+
+            strcpy(p[i].status, "Cancelled");
+            printf("\nTicket cancelled successfully!\n");
+            found = 1;
+            break;
+        }
+    }
+
+    if (!found)
+        printf("\nTicket not found!\n");
+}
+
+void displayChart()
+{
+    int i;
+
+    printf("\n========== RESERVATION CHART ==========\n");
+    printf("%-10s %-20s %-5s %-12s\n",
+           "Ticket", "Name", "Age", "Status");
+
+    for (i = 0; i < count; i++) {
+        printf("%-10d %-20s %-5d %-12s\n",
+               p[i].ticketNo,
+               p[i].name,
+               p[i].age,
+               p[i].status);
+    }
+
+    if (count == 0)
+        printf("No reservations found.\n");
+}
+
+int main()
+{
+    int choice;
+
+    do {
+        printf("\n\n===== RAILWAY RESERVATION SYSTEM =====");
+        printf("\n1. Book Ticket");
+        printf("\n2. Cancel Ticket");
+        printf("\n3. Display Reservation Chart");
+        printf("\n4. Exit");
+
+        printf("\n\nEnter your choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                bookTicket();
+                break;
+
+            case 2:
+                cancelTicket();
+                break;
+
+            case 3:
+                displayChart();
+                break;
+
+            case 4:
+                printf("\nThank you!\n");
+                break;
+
+            default:
+                printf("\nInvalid choice!\n");
+        }
+
+    } while (choice != 4);
+
+    return 0;
+}
